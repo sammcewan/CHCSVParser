@@ -729,6 +729,26 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
 
 @implementation NSArray (CHCSVAdditions)
 
++ (instancetype)arrayWithCSVString:(NSString *)csvString options:(CHCSVParserOptions)options{
+  NSParameterAssert(csvString);
+  _CHCSVAggregator *aggregator = [[_CHCSVAggregator alloc] init];
+  CHCSVParser *parser = [[CHCSVParser alloc] initWithCSVString:csvString];
+  [parser setDelegate:aggregator];
+  
+  [parser setRecognizesBackslashesAsEscapes:!!(options & CHCSVParserOptionsRecognizesBackslashesAsEscapes)];
+  [parser setSanitizesFields:!!(options & CHCSVParserOptionsSanitizesFields)];
+  [parser setRecognizesComments:!!(options & CHCSVParserOptionsRecognizesComments)];
+  [parser setStripsLeadingAndTrailingWhitespace:!!(options & CHCSVParserOptionsStripsLeadingAndTrailingWhitespace)];
+  
+  [parser parse];
+  CHCSV_RELEASE(parser);
+  
+  NSArray *final = CHCSV_AUTORELEASE(CHCSV_RETAIN([aggregator lines]));
+  CHCSV_RELEASE(aggregator);
+  
+  return final;
+}
+
 + (instancetype)arrayWithContentsOfCSVFile:(NSString *)csvFilePath {
     return [self arrayWithContentsOfCSVFile:csvFilePath options:0];
 }
